@@ -1,19 +1,11 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import Country from "./Country";
 
 const App = () => {
   const URL = "https://restcountries.eu/rest/v2/all";
   const [countries, setCountries] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const convertLargeNumToCardinalNum = (number) =>
-    number >= 1e9
-      ? number / 1e9 + "B"
-      : number >= 1e6
-      ? number / 1e6 + "M"
-      : number >= 1e3
-      ? number / 1e3 + "K"
-      : number;
 
   const handleInput = (event) => {
     let str = event.target.value.trimLeft().toLowerCase();
@@ -37,25 +29,6 @@ const App = () => {
     }
     return filteredCountries;
   };
-  const ShowCountry = ({ country }) => {
-    return (
-      <div>
-        <h1>{country.name}</h1>
-        <span>
-          {country.capital} <br />
-          {convertLargeNumToCardinalNum(country.population)} <br />
-        </span>
-        <h2>languages</h2>
-        <ul>
-          {country.languages.map((lang) => (
-            <li key={lang.name}>{lang.name}</li>
-          ))}
-        </ul>
-        <img src={country.flag} alt="flag of ${country.name}" width="200px" />
-      </div>
-    );
-  };
-
   const ShowCountryList = ({ filteredCountries }) => {
     const [countryState, setCountryState] = useState("");
 
@@ -63,15 +36,13 @@ const App = () => {
       return <div>Too many matches, specify another filter</div>;
     } else if (filteredCountries.length === 1) {
       const country = filteredCountries.sort()[0];
-      return <ShowCountry country={country} />;
+      return <Country country={country} />;
     } else {
       const countryList = filteredCountries.map((country) => (
         <span key={country.name}>
           {country.name}
           <button onClick={() => setCountryState(country.name)}>show</button>
-          {countryState === country.name ? (
-            <ShowCountry country={country} />
-          ) : null}
+          {countryState === country.name ? <Country country={country} /> : null}
           <br />
         </span>
       ));
@@ -87,8 +58,8 @@ const App = () => {
       })
       .catch((error) => console.log("promise failed, error: ", error));
   };
-
   useEffect(hook, []);
+
   const filteredCountries = countryList(countries, searchTerm);
   return (
     <div>
