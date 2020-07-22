@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import PersonForm from "./PersonForm";
 import Persons from "./Persons";
 import Filter from "./Filter";
+import Notification from "./Notification";
 import personsService from "./services/persons";
 
 const App = () => {
@@ -9,6 +10,7 @@ const App = () => {
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [newFilter, setNewFilter] = useState("");
+  const [message, setMessage] = useState({ type: null, text: null });
 
   useEffect(() => {
     personsService.getAll().then((response) => {
@@ -23,6 +25,7 @@ const App = () => {
     let number = event.target.value;
     setNewNumber(number);
   };
+
   const handleSubmit = (event) => {
     event.preventDefault();
     const fixedNewName = newName.trim();
@@ -32,6 +35,7 @@ const App = () => {
     const oldPerson = persons.filter(
       (person) => person.name === fixedNewName
     )[0];
+
     if (oldPerson) {
       if (
         window.confirm(
@@ -48,18 +52,33 @@ const App = () => {
                 person.id !== oldPerson.id ? person : response
               )
             );
+            setMessage({
+              type: "success",
+              text: `Changed ${oldPerson.name}'s number`,
+            });
             setNewName("");
             setNewNumber("");
+          })
+          .catch((error) => {
+            setMessage({
+              type: "error",
+              text: `${newPerson.name} no longer exists on server.`,
+            });
+            setNewName("");
+            setNewNumber("");
+            setPersons(persons.filter((person) => person.id !== oldPerson.id));
           });
       }
     } else {
-      persons.some((people) => people.name === newName)
-        ? alert(`${newName} is already added to phonebook`)
-        : personsService.add(newPerson).then((repsonse) => {
-            setPersons(persons.concat(repsonse));
-            setNewName("");
-            setNewNumber("");
-          });
+      personsService.add(newPerson).then((repsonse) => {
+        setPersons(persons.concat(repsonse));
+        setMessage({
+          type: "success",
+          text: `Added ${newPerson.name}`,
+        });
+        setNewName("");
+        setNewNumber("");
+      });
     }
   };
   const handleSearch = (event) => {
@@ -68,15 +87,33 @@ const App = () => {
   };
   const handleDelete = (id, person) => {
     if (window.confirm(`Delete ${person.name}?`)) {
-      personsService.remove(id);
-      const updatedPersons = persons.filter((person) => person.id !== id);
-      setPersons(updatedPersons);
+      personsService
+        .remove(id)
+        .then(() => {
+          setMessage({
+            type: "warning",
+            text: `Deleted ${person.name}.`,
+          });
+          setPersons(persons.filter((person) => person.id !== id));
+        })
+        .catch((error) => {
+          setMessage({
+            type: "error",
+            text: `${person.name} no longer exists on server.`,
+          });
+          setPersons(persons.filter((person) => person.id !== id));
+        });
     }
   };
 
   return (
     <div>
-      <Filter handleSearch={handleSearch} />
+      <Notification message={message} setMessage={setMessage} />
+      <Filter
+        handleSearch={handleSearch}
+        message={message}
+        setMessage={setMessage}
+      />
       <PersonForm
         newName={newName}
         newNumber={newNumber}
