@@ -1,26 +1,24 @@
 import React from "react";
 
-const Persons = ({ persons, newFilter }) => {
-  const people =
+const Persons = ({ persons, newFilter, handleDelete }) => {
+  const showPerson = (person) => (
+    <span key={person.name}>
+      {" "}
+      {person.name} {person.number}{" "}
+      <button onClick={() => handleDelete(person.id, person)}>delete</button>
+      <br />
+    </span>
+  );
+  let people =
     newFilter.length > 0
       ? persons
-          .filter((people) => people.name.toLowerCase().includes(newFilter))
-          .map((people) => (
-            <p key={people.name}>
-              {" "}
-              {people.name} {people.number}{" "}
-            </p>
-          ))
-      : persons.map((people) => (
-          <p key={people.name}>
-            {" "}
-            {people.name} {people.number}{" "}
-          </p>
-        ));
+          .filter((person) => person.name.toLowerCase().includes(newFilter))
+          .map((person) => showPerson(person))
+      : persons.map((person) => showPerson(person));
 
   return (
     <>
-      <h3>Numbers</h3>
+      <h2>Numbers</h2>
       {people}
     </>
   );
