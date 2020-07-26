@@ -60,6 +60,7 @@ const App = () => {
             setNewNumber("");
           })
           .catch((error) => {
+            console.log(error);
             setMessage({
               type: "error",
               text: `${newPerson.name} no longer exists on server.`,
