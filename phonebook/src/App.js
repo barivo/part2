@@ -63,23 +63,37 @@ const App = () => {
             console.log(error);
             setMessage({
               type: "error",
-              text: `${newPerson.name} no longer exists on server.`,
+              text: error.response.data.error,
             });
             setNewName("");
             setNewNumber("");
-            setPersons(persons.filter((person) => person.id !== oldPerson.id));
           });
       }
     } else {
-      personsService.add(newPerson).then((repsonse) => {
-        setPersons(persons.concat(repsonse));
-        setMessage({
-          type: "success",
-          text: `Added ${newPerson.name}`,
+      personsService
+        .add(newPerson)
+        .then((repsonse) => {
+          setPersons(persons.concat(repsonse));
+          setMessage({
+            type: "success",
+            text: `Added ${newPerson.name}`,
+          });
+          setNewName("");
+          setNewNumber("");
+        })
+        .catch((error) => {
+          // console.log(JSON.stringify(error.response));
+          if (error.response) {
+            setMessage({
+              type: "error",
+              text: error.response.data.error,
+            });
+          } else if (error.request) {
+            console.log("error.request", error.request);
+          } else {
+            console.log("Error", error.message);
+          }
         });
-        setNewName("");
-        setNewNumber("");
-      });
     }
   };
   const handleSearch = (event) => {
